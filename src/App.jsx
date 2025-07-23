@@ -1,13 +1,24 @@
-import React, { useState, useEffect } from 'react';
+  import React, { useState, useEffect } from 'react';
 
-const NewsWebsite = () => {
-  const [articles, setArticles] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [searchQuery, setSearchQuery] = useState('');
+  const NewsWebsite = () => {
+    const [articles, setArticles] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+    const [searchQuery, setSearchQuery] = useState('');
 
-  const API_KEY = '366a240e6df2457d94f526d2d18c179b';
-  const BASE_URL = 'https://newsapi.org/v2';
+    useEffect(() => {
+      fetch('/api/news') // This now works on Vercel
+        .then((res) => res.json())
+        .then((data) => {
+          setArticles(data.articles || []);
+          setLoading(false);
+        })
+        .catch((err) => {
+          setError('Failed to load news');
+          setLoading(false);
+        });
+    }, []);
+
 
   const fetchNews = async (query = '') => {
     setLoading(true);
