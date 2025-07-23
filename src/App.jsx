@@ -1,545 +1,532 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Calendar, User, ExternalLink, Zap } from 'lucide-react';
 
-function App() {
+const NewsWebsite = () => {
   const [articles, setArticles] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-  const [searchTerm, setSearchTerm] = useState('');
-  const [country, setCountry] = useState('us');
+  const [error, setError] = useState(null);
+  const [searchQuery, setSearchQuery] = useState('');
 
-  // Replace with your actual News API key
   const API_KEY = '366a240e6df2457d94f526d2d18c179b';
   const BASE_URL = 'https://newsapi.org/v2';
 
-  const countries = [
-    { code: 'us', name: 'USA' }
-  ];
-
-  useEffect(() => {
-    fetchNews();
-  }, [country]);
-
-  const fetchNews = async (search = '') => {
+  const fetchNews = async (query = '') => {
     setLoading(true);
-    setError('');
-
+    setError(null);
+    
     try {
-      let url = '';
-      if (search) {
-        url = `${BASE_URL}/everything?q=${encodeURIComponent(search)}&apiKey=${API_KEY}&pageSize=20&sortBy=publishedAt`;
+      let url;
+      if (query.trim()) {
+        url = `${BASE_URL}/everything?q=${encodeURIComponent(query)}&apiKey=${API_KEY}&pageSize=20&sortBy=publishedAt`;
       } else {
-        url = `${BASE_URL}/top-headlines?country=${country}&apiKey=${API_KEY}&pageSize=20`;
+        url = `${BASE_URL}/top-headlines?country=us&apiKey=${API_KEY}&pageSize=20`;
       }
-
-      const response = await fetch(url);
       
-      if (!response.ok) {
-        throw new Error('Failed to fetch news');
-      }
-
+      const response = await fetch(url);
       const data = await response.json();
       
       if (data.status === 'ok') {
-        setArticles(data.articles.filter(article => 
-          article.title && 
-          article.description && 
-          article.urlToImage &&
-          !article.title.includes('[Removed]')
-        ));
+        setArticles(data.articles || []);
       } else {
         throw new Error(data.message || 'Failed to fetch news');
       }
     } catch (err) {
       setError(err.message);
-      // Fallback to sample data for demo
-      setArticles(getSampleArticles());
+      setArticles([]);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleSearch = (e) => {
-    if (searchTerm.trim()) {
-      fetchNews(searchTerm);
-    }
-  };
+  useEffect(() => {
+    fetchNews();
+  }, []);
 
-  const handleCountryChange = (newCountry) => {
-    setCountry(newCountry);
-    setSearchTerm('');
+  const handleSearch = (e) => {
+    if (e && e.preventDefault) e.preventDefault();
+    fetchNews(searchQuery);
   };
 
   const formatDate = (dateString) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', {
+    return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
-      month: 'short',
+      month: 'long',
       day: 'numeric',
       hour: '2-digit',
       minute: '2-digit'
     });
   };
 
-  const getSampleArticles = () => [
-    {
-      title: "Breaking: Major Technology Breakthrough Announced",
-      description: "Scientists have made a significant discovery that could revolutionize the tech industry...",
-      url: "#",
-      urlToImage: "https://images.unsplash.com/photo-1518770660439-4636190af475?w=400&h=200&fit=crop",
-      publishedAt: new Date().toISOString(),
-      source: { name: "Tech News" },
-      author: "John Doe"
+  const truncateText = (text, maxLength) => {
+    if (!text) return '';
+    return text.length > maxLength ? text.substring(0, maxLength) + '...' : text;
+  };
+
+  // Inline Styles
+  const styles = {
+    container: {
+      minHeight: '100vh',
+      backgroundColor: '#ffffff',
+      color: '#000000',
+      fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+      margin: 0,
+      padding: 0,
+      width: '100vw',
+      boxSizing: 'border-box',
+      display: 'flex',
+      flexDirection: 'column',
+      overflowX: 'hidden'
     },
-    {
-      title: "Global Climate Summit Reaches Historic Agreement",
-      description: "World leaders unite on unprecedented climate action plan with ambitious targets...",
-      url: "#",
-      urlToImage: "https://images.unsplash.com/photo-1569163139394-de4e4f43e4e3?w=400&h=200&fit=crop",
-      publishedAt: new Date(Date.now() - 3600000).toISOString(),
-      source: { name: "World News" },
-      author: "Jane Smith"
+    header: {
+      backgroundColor: '#000000',
+      color: '#ffffff',
+      padding: '2rem 1rem',
+      boxShadow: '0 2px 10px rgba(0,0,0,0.1)',
+      width: '100%',
+      boxSizing: 'border-box'
     },
-    {
-      title: "Stock Market Hits Record High Amid Economic Recovery",
-      description: "Markets continue upward trajectory as economic indicators show strong recovery signs...",
-      url: "#",
-      urlToImage: "https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=400&h=200&fit=crop",
-      publishedAt: new Date(Date.now() - 7200000).toISOString(),
-      source: { name: "Financial Times" },
-      author: "Mike Johnson"
+    headerContainer: {
+      maxWidth: '1400px',
+      margin: '0 auto',
+      width: '100%',
+      boxSizing: 'border-box',
+      padding: '0 1rem'
+    },
+    title: {
+      textAlign: 'center',
+      fontSize: '3rem',
+      fontWeight: 'bold',
+      marginBottom: '2rem',
+      margin: '0 0 2rem 0'
+    },
+    searchContainer: {
+      maxWidth: '600px',
+      margin: '0 auto',
+      display: 'flex',
+      borderRadius: '8px',
+      overflow: 'hidden',
+      width: '100%'
+    },
+    searchInput: {
+      flex: 1,
+      padding: '1rem',
+      border: '2px solid #ccc',
+      borderRight: 'none',
+      fontSize: '1rem',
+      outline: 'none',
+      borderRadius: '8px 0 0 8px',
+      color: '#000'
+    },
+    searchButton: {
+      padding: '1rem 1.5rem',
+      backgroundColor: '#333333',
+      color: 'white',
+      border: 'none',
+      cursor: 'pointer',
+      borderRadius: '0 8px 8px 0',
+      transition: 'background-color 0.3s',
+      fontSize: '1rem'
+    },
+    main: {
+      width: '100%',
+      maxWidth: '1400px',
+      margin: '0 auto',
+      padding: '2rem 1rem',
+      boxSizing: 'border-box',
+      minHeight: '60vh',
+      flex: 1
+    },
+    loadingContainer: {
+      display: 'flex',
+      justifyContent: 'center',
+      alignItems: 'center',
+      padding: '5rem 0',
+      flexDirection: 'column',
+      width: '100%',
+      minHeight: '400px',
+      boxSizing: 'border-box'
+    },
+    spinner: {
+      width: '40px',
+      height: '40px',
+      border: '4px solid #f3f3f3',
+      borderTop: '4px solid #333333',
+      borderRadius: '50%',
+      animation: 'spin 1s linear infinite',
+      marginBottom: '1rem'
+    },
+    errorContainer: {
+      display: 'flex',
+      justifyContent: 'center',
+      alignItems: 'center',
+      padding: '5rem 0',
+      width: '100%',
+      minHeight: '400px',
+      boxSizing: 'border-box'
+    },
+    errorBox: {
+      backgroundColor: '#fee',
+      border: '1px solid #fcc',
+      borderRadius: '8px',
+      padding: '2rem',
+      textAlign: 'center',
+      maxWidth: '500px',
+      color: '#c33',
+      width: '100%'
+    },
+    retryButton: {
+      marginTop: '1rem',
+      padding: '0.5rem 1rem',
+      backgroundColor: '#c33',
+      color: 'white',
+      border: 'none',
+      borderRadius: '8px',
+      cursor: 'pointer'
+    },
+    newsGrid: {
+      display: 'grid',
+      gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))',
+      gap: '2rem',
+      width: '100%',
+      boxSizing: 'border-box',
+      padding: 0
+    },
+    articleCard: {
+      backgroundColor: 'white',
+      border: '2px solid #e0e0e0',
+      borderRadius: '12px',
+      overflow: 'hidden',
+      transition: 'all 0.3s',
+      boxShadow: '0 4px 15px rgba(0,0,0,0.1)',
+      width: '100%',
+      boxSizing: 'border-box',
+      display: 'flex',
+      flexDirection: 'column'
+    },
+    articleImage: {
+      width: '100%',
+      height: '200px',
+      objectFit: 'cover',
+      transition: 'transform 0.3s'
+    },
+    articleContent: {
+      padding: '1.5rem',
+      flex: 1,
+      display: 'flex',
+      flexDirection: 'column',
+      boxSizing: 'border-box'
+    },
+    articleMeta: {
+      display: 'flex',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      fontSize: '0.9rem',
+      color: '#666666',
+      marginBottom: '1rem'
+    },
+    articleSource: {
+      fontWeight: '600'
+    },
+    articleDate: {
+      display: 'flex',
+      alignItems: 'center',
+      gap: '0.3rem'
+    },
+    articleTitle: {
+      fontSize: '1.3rem',
+      fontWeight: 'bold',
+      marginBottom: '1rem',
+      lineHeight: '1.4',
+      transition: 'color 0.3s',
+      margin: '0 0 1rem 0'
+    },
+    articleDescription: {
+      color: '#555555',
+      marginBottom: '1rem',
+      lineHeight: '1.6'
+    },
+    articleAuthor: {
+      fontSize: '0.9rem',
+      color: '#666666',
+      marginBottom: '1rem',
+      fontStyle: 'italic'
+    },
+    readMoreButton: {
+      display: 'inline-flex',
+      alignItems: 'center',
+      gap: '0.5rem',
+      padding: '0.75rem 1.5rem',
+      backgroundColor: '#000000',
+      color: 'white',
+      textDecoration: 'none',
+      borderRadius: '8px',
+      fontWeight: '500',
+      transition: 'background-color 0.3s',
+      marginTop: 'auto'
+    },
+    footer: {
+      backgroundColor: '#000000',
+      color: 'white',
+      textAlign: 'center',
+      padding: '2rem 1rem',
+      marginTop: 'auto',
+      width: '100%'
+    },
+    footerTitle: {
+      fontSize: '2rem',
+      fontWeight: 'bold',
+      marginBottom: '1rem',
+      margin: '0 0 1rem 0'
+    },
+    footerText: {
+      color: '#cccccc',
+      marginBottom: '1rem'
+    },
+    footerSmall: {
+      fontSize: '0.9rem',
+      color: '#888888'
+    },
+    noResults: {
+      textAlign: 'center',
+      padding: '5rem 0',
+      width: '100%',
+      minHeight: '400px',
+      display: 'flex',
+      flexDirection: 'column',
+      justifyContent: 'center',
+      alignItems: 'center',
+      boxSizing: 'border-box',
+      gridColumn: '1 / -1'
     }
-  ];
+  };
 
   return (
-    <div className="news-app">
+    <div style={styles.container}>
       {/* Header */}
-      <header className="header">
-        <div className="container">
-          <div className="logo">
-            <Zap size={32} />
-            <h1>NewsHub</h1>
-          </div>
+      <header style={styles.header}>
+        <div style={styles.headerContainer}>
+          <h1 style={styles.title}>NewsHub</h1>
           
           {/* Search Bar */}
-          <div className="search-form">
-            <div className="search-container">
-              <Search className="search-icon" size={20} />
-              <input
-                type="text"
-                placeholder="Search news..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                onKeyPress={(e) => e.key === 'Enter' && handleSearch(e)}
-                className="search-input"
-              />
-              <button onClick={handleSearch} className="search-btn">Search</button>
-            </div>
+          <div style={styles.searchContainer}>
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search for news..."
+              onKeyPress={(e) => e.key === 'Enter' && handleSearch(e)}
+              style={{
+                ...styles.searchInput,
+                ':focus': { borderColor: '#666666' }
+              }}
+            />
+            <button
+              onClick={handleSearch}
+              style={styles.searchButton}
+              onMouseOver={(e) => e.target.style.backgroundColor = '#555555'}
+              onMouseOut={(e) => e.target.style.backgroundColor = '#333333'}
+            >
+              🔍
+            </button>
           </div>
-
-          {/* Country Selector */}
-          <select 
-            value={country} 
-            onChange={(e) => handleCountryChange(e.target.value)}
-            className="country-select"
-          >
-            {countries.map(c => (
-              <option key={c.code} value={c.code}>{c.name}</option>
-            ))}
-          </select>
         </div>
       </header>
 
       {/* Main Content */}
-      <main className="main">
-        <div className="container">
-          {error && (
-            <div className="error">
-              <p>⚠️ {error}</p>
-              <p>Showing sample articles for demonstration.</p>
+      <main style={styles.main}>
+        {/* Loading State */}
+        {loading && (
+          <div style={styles.loadingContainer}>
+            <div style={styles.spinner}></div>
+            <span style={{ fontSize: '1.2rem' }}>Loading news...</span>
+          </div>
+        )}
+
+        {/* Error State */}
+        {error && (
+          <div style={styles.errorContainer}>
+            <div style={styles.errorBox}>
+              <h3 style={{ fontSize: '1.5rem', marginBottom: '1rem' }}>⚠️ Error Loading News</h3>
+              <p>{error}</p>
+              <button
+                onClick={() => fetchNews()}
+                style={styles.retryButton}
+                onMouseOver={(e) => e.target.style.backgroundColor = '#a22'}
+                onMouseOut={(e) => e.target.style.backgroundColor = '#c33'}
+              >
+                Try Again
+              </button>
             </div>
-          )}
+          </div>
+        )}
 
-          {!loading && articles.length === 0 && (
-            <div className="no-results">
-              <p>No articles found. Try a different search term.</p>
-            </div>
-          )}
+        {/* News Articles */}
+        {!loading && !error && (
+          <div style={styles.newsGrid}>
+            {articles.length > 0 ? (
+              articles.map((article, index) => (
+                <article
+                  key={index}
+                  style={styles.articleCard}
+                  className="article-card"
+                  onMouseOver={(e) => {
+                    e.currentTarget.style.borderColor = '#000000';
+                    e.currentTarget.style.transform = 'translateY(-5px)';
+                    e.currentTarget.style.boxShadow = '0 8px 25px rgba(0,0,0,0.15)';
+                  }}
+                  onMouseOut={(e) => {
+                    e.currentTarget.style.borderColor = '#e0e0e0';
+                    e.currentTarget.style.transform = 'translateY(0)';
+                    e.currentTarget.style.boxShadow = '0 4px 15px rgba(0,0,0,0.1)';
+                  }}
+                >
+                  {/* Article Image */}
+                  {article.urlToImage && (
+                    <img
+                      src={article.urlToImage}
+                      alt={article.title}
+                      style={styles.articleImage}
+                      onError={(e) => {
+                        e.target.style.display = 'none';
+                      }}
+                    />
+                  )}
 
-          {articles.length > 0 && (
-            <>
-              <div className="results-info">
-                <h2>
-                  {searchTerm ? `Search results for "${searchTerm}"` : 'Latest News'}
-                </h2>
-                <p>{articles.length} articles found</p>
-              </div>
-
-              <div className="articles-grid">
-                {articles.map((article, index) => (
-                  <article key={index} className="article-card">
-                    <div className="article-image">
-                      <img
-                        src={article.urlToImage}
-                        alt={article.title}
-                        onError={(e) => {
-                          e.target.src = 'https://images.unsplash.com/photo-1504711434969-e33886168f5c?w=400&h=200&fit=crop';
-                        }}
-                      />
-                    </div>
-                    
-                    <div className="article-content">
-                      <div className="article-meta">
-                        <span className="source">{article.source.name}</span>
-                        <span className="date">
-                          <Calendar size={14} />
-                          {formatDate(article.publishedAt)}
-                        </span>
-                      </div>
-                      
-                      <h3 className="article-title">{article.title}</h3>
-                      <p className="article-description">{article.description}</p>
-                      
-                      <div className="article-footer">
-                        {article.author && (
-                          <span className="author">
-                            <User size={14} />
-                            {article.author}
-                          </span>
-                        )}
-                        <a
-                          href={article.url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="read-more"
-                        >
-                          Read More
-                          <ExternalLink size={14} />
-                        </a>
+                  {/* Article Content */}
+                  <div style={styles.articleContent}>
+                    {/* Source and Date */}
+                    <div style={styles.articleMeta}>
+                      <span style={styles.articleSource}>{article.source?.name}</span>
+                      <div style={styles.articleDate}>
+                        <span>📅</span>
+                        <span>{formatDate(article.publishedAt)}</span>
                       </div>
                     </div>
-                  </article>
-                ))}
+
+                    {/* Title */}
+                    <h2 style={styles.articleTitle}>
+                      {truncateText(article.title, 100)}
+                    </h2>
+
+                    {/* Description */}
+                    {article.description && (
+                      <p style={styles.articleDescription}>
+                        {truncateText(article.description, 150)}
+                      </p>
+                    )}
+
+                    {/* Author */}
+                    {article.author && (
+                      <p style={styles.articleAuthor}>
+                        By {article.author}
+                      </p>
+                    )}
+
+                    {/* Read More Button */}
+                    <a
+                      href={article.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={styles.readMoreButton}
+                      onMouseOver={(e) => e.target.style.backgroundColor = '#333333'}
+                      onMouseOut={(e) => e.target.style.backgroundColor = '#000000'}
+                    >
+                      Read Full Article
+                      <span>🔗</span>
+                    </a>
+                  </div>
+                </article>
+              ))
+            ) : (
+              <div style={styles.noResults}>
+                <h3 style={{ fontSize: '2rem', fontWeight: '600', marginBottom: '1rem' }}>No Articles Found</h3>
+                <p style={{ color: '#666666' }}>Try adjusting your search.</p>
               </div>
-            </>
-          )}
-        </div>
+            )}
+          </div>
+        )}
       </main>
 
       {/* Footer */}
-      <footer className="footer">
-        <div className="container">
-          <p>&copy; 2025 NewsHub. Powered by News API</p>
+      <footer style={styles.footer}>
+        <div style={styles.headerContainer}>
+          <h3 style={styles.footerTitle}>NewsHub</h3>
+          <p style={styles.footerText}>
+            Stay informed with the latest news from around the world
+          </p>
+          <p style={styles.footerSmall}>
+            Powered by NewsAPI.org
+          </p>
         </div>
       </footer>
 
-      <style jsx>{`
-        .news-app {
-          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-          line-height: 1.6;
-          color: #333;
-          min-height: 100vh;
-          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        }
-
-        .container {
-          max-width: 1500px;
-          margin: 0 auto;
-          padding: 0 20px;
-        }
-
-        /* Header */
-        .header {
-          background: rgba(255, 255, 255, 0.95);
-          backdrop-filter: blur(10px);
-          border-bottom: 1px solid rgba(255, 255, 255, 0.2);
-          padding: 1rem 0;
-          position: sticky;
-          top: 0;
-          z-index: 100;
-        }
-
-        .header .container {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          flex-wrap: wrap;
-          gap: 1rem;
-        }
-
-        .logo {
-          display: flex;
-          align-items: center;
-          gap: 0.5rem;
-          color: #667eea;
-          font-weight: bold;
-        }
-
-        .logo h1 {
-          margin: 0;
-          font-size: 1.8rem;
-        }
-
-        .search-form {
-          flex: 1;
-          max-width: 500px;
-        }
-
-        .search-container {
-          position: relative;
-          display: flex;
-          align-items: center;
-        }
-
-        .search-icon {
-          position: absolute;
-          left: 12px;
-          color: #666;
-          z-index: 2;
-        }
-
-        .search-input {
-          flex: 1;
-          padding: 12px 16px 12px 44px;
-          border: 2px solid #e1e5e9;
-          border-radius: 25px;
-          font-size: 16px;
-          outline: none;
-          transition: all 0.3s ease;
-        }
-
-        .search-input:focus {
-          border-color: #667eea;
-          box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-        }
-
-        .search-btn {
-          background: #667eea;
-          color: white;
-          border: none;
-          padding: 12px 24px;
-          border-radius: 25px;
-          margin-left: 8px;
-          cursor: pointer;
-          font-weight: 600;
-          transition: all 0.3s ease;
-        }
-
-        .search-btn:hover {
-          background: #5a67d8;
-          transform: translateY(-1px);
-        }
-
-        .country-select {
-          padding: 12px 16px;
-          border: 2px solid #e1e5e9;
-          border-radius: 8px;
-          font-size: 16px;
-          background: white;
-          cursor: pointer;
-          outline: none;
-        }
-
-        .country-select:focus {
-          border-color: #667eea;
-        }
-
-        /* Main Content */
-        .main {
-          padding: 2rem 0;
-          min-height: calc(100vh - 200px);
-        }
-
-
-
-        .error {
-          background: rgba(255, 107, 107, 0.9);
-          color: white;
-          padding: 1rem;
-          border-radius: 8px;
-          text-align: center;
-          margin-bottom: 2rem;
-        }
-
-        .no-results {
-          text-align: center;
-          color: white;
-          font-size: 1.2rem;
-          padding: 3rem 0;
-        }
-
-        .results-info {
-          margin-bottom: 2rem;
-          color: white;
-          text-align: center;
-        }
-
-        .results-info h2 {
-          margin: 0 0 0.5rem 0;
-          font-size: 2rem;
-        }
-
-        .results-info p {
-          margin: 0;
-          opacity: 0.8;
-        }
-
-        /* Articles Grid */
-        .articles-grid {
-          display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-          gap: 2rem;
-        }
-
-        .article-card {
-          background: rgba(255, 255, 255, 0.95);
-          border-radius: 16px;
-          overflow: hidden;
-          box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-          transition: all 0.3s ease;
-          backdrop-filter: blur(10px);
-        }
-
-        .article-card:hover {
-          transform: translateY(-5px);
-          box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
-        }
-
-        .article-image {
-          height: 200px;
-          overflow: hidden;
-        }
-
-        .article-image img {
-          width: 100%;
-          height: 100%;
-          object-fit: cover;
-          transition: transform 0.3s ease;
-        }
-
-        .article-card:hover .article-image img {
-          transform: scale(1.05);
-        }
-
-        .article-content {
-          padding: 1.5rem;
-        }
-
-        .article-meta {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          margin-bottom: 1rem;
-          font-size: 0.875rem;
-          color: #666;
-        }
-
-        .source {
-          background: #667eea;
-          color: white;
-          padding: 4px 12px;
-          border-radius: 12px;
-          font-weight: 600;
-        }
-
-        .date {
-          display: flex;
-          align-items: center;
-          gap: 0.25rem;
-        }
-
-        .article-title {
-          margin: 0 0 1rem 0;
-          font-size: 1.25rem;
-          line-height: 1.4;
-          color: #2d3748;
-        }
-
-        .article-description {
-          margin: 0 0 1.5rem 0;
-          color: #4a5568;
-          line-height: 1.6;
-        }
-
-        .article-footer {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          border-top: 1px solid #e2e8f0;
-          padding-top: 1rem;
-        }
-
-        .author {
-          display: flex;
-          align-items: center;
-          gap: 0.25rem;
-          font-size: 0.875rem;
-          color: #666;
-        }
-
-        .read-more {
-          display: flex;
-          align-items: center;
-          gap: 0.25rem;
-          color: #667eea;
-          text-decoration: none;
-          font-weight: 600;
-          transition: all 0.3s ease;
-        }
-
-        .read-more:hover {
-          color: #5a67d8;
-          transform: translateX(2px);
-        }
-
-        /* Footer */
-        .footer {
-          background: rgba(0, 0, 0, 0.8);
-          color: white;
-          text-align: center;
-          padding: 2rem 0;
-          margin-top: 4rem;
-        }
-
-        .footer p {
-          margin: 0;
-          opacity: 0.8;
-        }
-
-        /* Responsive */
-        @media (max-width: 768px) {
-          .header .container {
-            flex-direction: column;
-            gap: 1rem;
+      {/* CSS Animation for Spinner */}
+      <style>
+        {`
+          * {
+            box-sizing: border-box;
           }
-
-          .search-container {
-            flex-direction: column;
-            gap: 0.5rem;
+          
+          body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            overflow-x: hidden;
           }
-
-          .search-btn {
-            margin-left: 0;
-            align-self: stretch;
+          
+          @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
           }
-
-          .articles-grid {
-            grid-template-columns: 1fr;
+          
+          @media (max-width: 1200px) {
+            .news-grid {
+              grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)) !important;
+              gap: 1.5rem !important;
+            }
           }
-
-          .results-info h2 {
-            font-size: 1.5rem;
+          
+          @media (max-width: 768px) {
+            .news-grid {
+              grid-template-columns: 1fr !important;
+              gap: 1rem !important;
+            }
+            
+            .header-container {
+              padding: 1rem !important;
+            }
+            
+            .search-container {
+              flex-direction: column !important;
+              gap: 0.5rem !important;
+            }
+            
+            .search-input {
+              border-radius: 8px !important;
+              border: 2px solid #ccc !important;
+            }
+            
+            .search-button {
+              border-radius: 8px !important;
+            }
           }
-
-          .article-footer {
-            flex-direction: column;
-            gap: 0.5rem;
-            align-items: flex-start;
+          
+          @media (max-width: 480px) {
+            .title {
+              font-size: 2rem !important;
+            }
+            
+            .main {
+              padding: 1rem 0.5rem !important;
+            }
+            
+            .article-card {
+              margin: 0 !important;
+            }
           }
-        }
-      `}</style>
+        `}
+      </style>
     </div>
   );
-}
+};
 
-export default App;
+export default NewsWebsite;
